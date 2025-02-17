@@ -8,9 +8,9 @@ const Navigation = () => {
   const location = useLocation();
 
   const navItems = [
-    { path: "/chat", icon: MessageSquare, label: "Chat" },
-    { path: "/", icon: Settings, label: "Config" },
-    { path: "/models", icon: Database, label: "Models" },
+    { path: "/chat", icon: MessageSquare, label: "聊天" },
+    { path: "/", icon: Settings, label: "配置" },
+    { path: "/models", icon: Database, label: "模型" },
   ];
 
   return (
