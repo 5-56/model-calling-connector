@@ -21,8 +21,8 @@ const ModelTesting = ({ modelName, apiUrl, apiKey }: ModelTestingProps) => {
   const handleSubmit = async () => {
     if (!modelName || !apiUrl || !apiKey) {
       toast({
-        title: "Missing Configuration",
-        description: "Please fill in all model configuration fields.",
+        title: "缺少配置",
+        description: "请填写所有模型配置字段。",
         variant: "destructive",
       });
       return;
@@ -30,8 +30,8 @@ const ModelTesting = ({ modelName, apiUrl, apiKey }: ModelTestingProps) => {
 
     if (!input.trim()) {
       toast({
-        title: "Empty Input",
-        description: "Please enter some text to process.",
+        title: "输入为空",
+        description: "请输入要处理的文本。",
         variant: "destructive",
       });
       return;
@@ -52,21 +52,21 @@ const ModelTesting = ({ modelName, apiUrl, apiKey }: ModelTestingProps) => {
       });
 
       if (!response.ok) {
-        throw new Error('API request failed');
+        throw new Error('API请求失败');
       }
 
       const data = await response.json();
       setResponse(data.choices?.[0]?.message?.content || JSON.stringify(data, null, 2));
       
       toast({
-        title: "Success",
-        description: "Response received successfully.",
+        title: "成功",
+        description: "已成功接收响应。",
       });
     } catch (error) {
-      console.error('Error:', error);
+      console.error('错误:', error);
       toast({
-        title: "Error",
-        description: "Failed to get response from the model.",
+        title: "错误",
+        description: "无法从模型获取响应。",
         variant: "destructive",
       });
     } finally {
@@ -77,12 +77,12 @@ const ModelTesting = ({ modelName, apiUrl, apiKey }: ModelTestingProps) => {
   return (
     <Card className="w-full max-w-2xl animate-slideIn">
       <CardHeader>
-        <CardTitle className="text-2xl font-light">Test Model</CardTitle>
+        <CardTitle className="text-2xl font-light">测试模型</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">
           <Textarea
-            placeholder="Enter your prompt here..."
+            placeholder="在此输入您的提示..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             className="min-h-[100px] transition-all duration-200 hover:border-gray-400 focus:border-gray-500"
@@ -96,15 +96,15 @@ const ModelTesting = ({ modelName, apiUrl, apiKey }: ModelTestingProps) => {
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing...
+              处理中...
             </>
           ) : (
-            'Submit'
+            '提交'
           )}
         </Button>
         {response && (
           <div className="space-y-2 animate-fadeIn">
-            <div className="font-medium text-sm text-gray-500">Response:</div>
+            <div className="font-medium text-sm text-gray-500">响应：</div>
             <div className="p-4 bg-gray-50 rounded-lg whitespace-pre-wrap">
               {response}
             </div>

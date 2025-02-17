@@ -24,35 +24,35 @@ const ModelConfig = ({
   return (
     <Card className="w-full max-w-2xl animate-slideIn">
       <CardHeader>
-        <CardTitle className="text-2xl font-light">Model Configuration</CardTitle>
+        <CardTitle className="text-2xl font-light">模型配置</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="modelName">Model Name</Label>
+          <Label htmlFor="modelName">模型名称</Label>
           <Input
             id="modelName"
-            placeholder="Enter model name"
+            placeholder="请输入模型名称"
             value={modelName}
             onChange={(e) => setModelName(e.target.value)}
             className="transition-all duration-200 hover:border-gray-400 focus:border-gray-500"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="apiUrl">API URL</Label>
+          <Label htmlFor="apiUrl">API 地址</Label>
           <Input
             id="apiUrl"
-            placeholder="Enter API endpoint URL"
+            placeholder="请输入API地址"
             value={apiUrl}
             onChange={(e) => setApiUrl(e.target.value)}
             className="transition-all duration-200 hover:border-gray-400 focus:border-gray-500"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="apiKey">API Key</Label>
+          <Label htmlFor="apiKey">API 密钥</Label>
           <Input
             id="apiKey"
             type="password"
-            placeholder="Enter API key"
+            placeholder="请输入API密钥"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
             className="transition-all duration-200 hover:border-gray-400 focus:border-gray-500"

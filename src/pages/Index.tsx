@@ -13,8 +13,8 @@ const Index = () => {
       <div className="container mx-auto py-12 px-4">
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="text-center space-y-4 mb-12">
-            <h1 className="text-4xl font-light tracking-tight">Custom Model Connector</h1>
-            <p className="text-gray-500">Configure and test your AI model endpoint</p>
+            <h1 className="text-4xl font-light tracking-tight">自定义模型连接器</h1>
+            <p className="text-gray-500">配置并测试您的AI模型接口</p>
           </div>
           <ModelConfig
             modelName={modelName}
