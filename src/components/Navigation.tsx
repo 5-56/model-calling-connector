@@ -14,7 +14,7 @@ const Navigation = () => {
   ];
 
   return (
-    <nav className="bg-white shadow-sm">
+    <nav className="bg-white shadow-sm mt-auto">
       <div className="container mx-auto px-4">
         <div className="flex justify-center space-x-8 py-4">
           {navItems.map(({ path, icon: Icon, label }) => (

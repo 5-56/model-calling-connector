@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { User, Bot, History, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { User, Bot, History, PanelLeftClose, PanelLeftOpen, Plus } from 'lucide-react';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -29,6 +29,11 @@ const Chat = () => {
     { id: '2', title: '机器学习基础概念', date: '2024-02-19' },
     { id: '3', title: '深度学习应用案例', date: '2024-02-18' },
   ]);
+
+  const handleNewChat = () => {
+    setMessages([]);
+    // 这里可以添加创建新对话的逻辑
+  };
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -62,13 +67,20 @@ const Chat = () => {
             isSidebarOpen ? 'w-80' : 'w-0 overflow-hidden'
           } transition-all duration-300 ease-in-out`}
         >
-          <Card className="h-[80vh]">
+          <Card className="h-[calc(100vh-8rem)]">
             <CardHeader className="flex flex-row items-center justify-between py-4">
-              <CardTitle className="text-xl font-light">历史记录</CardTitle>
-              <History className="h-5 w-5 text-gray-500" />
+              <CardTitle className="text-xl font-light">对话历史</CardTitle>
+              <Button 
+                onClick={handleNewChat}
+                variant="ghost" 
+                size="icon"
+                className="hover:bg-blue-50 hover:text-blue-600"
+              >
+                <Plus className="h-5 w-5" />
+              </Button>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-[calc(80vh-80px)]">
+              <ScrollArea className="h-[calc(100vh-12rem)]">
                 <div className="space-y-2">
                   {chatHistory.map((chat) => (
                     <div
@@ -86,7 +98,7 @@ const Chat = () => {
         </div>
 
         {/* 主聊天区域 */}
-        <Card className="flex-1 h-[80vh] flex flex-col">
+        <Card className="flex-1 h-[calc(100vh-8rem)] flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between py-4">
             <Button
               variant="ghost"
@@ -100,7 +112,7 @@ const Chat = () => {
               )}
             </Button>
             <CardTitle className="text-2xl font-light">聊天界面</CardTitle>
-            <div className="w-9" /> {/* 平衡布局的空div */}
+            <div className="w-9" />
           </CardHeader>
           <CardContent className="flex-1 flex flex-col">
             <ScrollArea ref={scrollRef} className="flex-1 pr-4">

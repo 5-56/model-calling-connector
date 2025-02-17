@@ -18,14 +18,16 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
+          <div className="flex-1">
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/chat" element={<Chat />} />
+              <Route path="/models" element={<Models />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </div>
           <Navigation />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/chat" element={<Chat />} />
-            <Route path="/models" element={<Models />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
         </div>
       </BrowserRouter>
     </TooltipProvider>
