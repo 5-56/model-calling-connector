@@ -4,33 +4,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
-
-interface Model {
-  id: string;
-  name: string;
-  apiUrl: string;
-  lastUsed: string;
-}
+import useModels from '../hooks/useModels';
 
 const Models = () => {
   const navigate = useNavigate();
-  const [models, setModels] = React.useState<Model[]>([
-    {
-      id: '1',
-      name: 'GPT-4',
-      apiUrl: 'https://api.example.com/v1/gpt4',
-      lastUsed: '2024-02-20',
-    },
-    {
-      id: '2',
-      name: 'Claude',
-      apiUrl: 'https://api.example.com/v1/claude',
-      lastUsed: '2024-02-19',
-    },
-  ]);
+  const { models, removeModel } = useModels();
 
   const handleDelete = (id: string) => {
-    setModels(models.filter(model => model.id !== id));
+    removeModel(id);
   };
 
   const handleAddModel = () => {
@@ -53,9 +34,6 @@ const Models = () => {
               <div>
                 <h3 className="text-lg font-medium">{model.name}</h3>
                 <p className="text-sm text-gray-500">{model.apiUrl}</p>
-                <p className="text-xs text-gray-400 mt-1">
-                  上次使用时间：{model.lastUsed}
-                </p>
               </div>
               <div className="flex gap-2">
                 <Button
