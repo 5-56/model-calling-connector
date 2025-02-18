@@ -106,6 +106,7 @@ const Chat = () => {
           'Authorization': `Bearer ${model.apiKey}`,
         },
         body: JSON.stringify({
+          model: model.name, // 添加model字段
           messages: [
             // 系统提示
             { role: 'system', content: '你是一个有帮助的AI助手。' },
@@ -118,7 +119,8 @@ const Chat = () => {
       });
 
       if (!response.ok) {
-        throw new Error('API请求失败');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'API请求失败');
       }
 
       const data = await response.json();
@@ -133,7 +135,7 @@ const Chat = () => {
       console.error('错误:', error);
       toast({
         title: "发送失败",
-        description: "无法从AI模型获取响应",
+        description: error instanceof Error ? error.message : "无法从AI模型获取响应",
         variant: "destructive",
       });
     } finally {
