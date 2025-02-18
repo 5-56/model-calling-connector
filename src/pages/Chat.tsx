@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { User, Bot, PanelLeftClose, PanelLeftOpen, Plus } from 'lucide-react';
+import { User, Bot, PanelLeftClose, PanelLeftOpen, Plus, Trash2 } from 'lucide-react';
 import useModels from '../hooks/useModels';
 
 interface Message {
@@ -35,10 +35,11 @@ const Chat = () => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
   const [selectedModel, setSelectedModel] = React.useState<string>("");
   const [isLoading, setIsLoading] = React.useState(false);
+  const [selectedHistory, setSelectedHistory] = React.useState<string | null>(null);
+  const [longPressTimeout, setLongPressTimeout] = React.useState<NodeJS.Timeout | null>(null);
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
-  // 模拟历史记录数据
-  const [chatHistory] = React.useState<ChatHistory[]>([
+  const [chatHistory, setChatHistory] = React.useState<ChatHistory[]>([
     {
       id: '1',
       title: '关于人工智能的讨论',
@@ -72,6 +73,29 @@ const Chat = () => {
     setMessages([]);
   };
 
+  const handleLongPressStart = (id: string) => {
+    const timeout = setTimeout(() => {
+      setSelectedHistory(id);
+    }, 500); // 500ms长按触发
+    setLongPressTimeout(timeout);
+  };
+
+  const handleLongPressEnd = () => {
+    if (longPressTimeout) {
+      clearTimeout(longPressTimeout);
+      setLongPressTimeout(null);
+    }
+  };
+
+  const handleDeleteHistory = (id: string) => {
+    setChatHistory(prev => prev.filter(chat => chat.id !== id));
+    setSelectedHistory(null);
+    toast({
+      title: "删除成功",
+      description: "已删除选中的对话历史",
+    });
+  };
+
   const handleSend = async () => {
     if (!input.trim()) return;
     if (!selectedModel) {
@@ -98,6 +122,13 @@ const Chat = () => {
     setInput("");
     setIsLoading(true);
 
+    // 准备发送的消息，确保不超过上下文长度限制
+    const messagesToSend = [
+      { role: 'system', content: '你是一个有帮助的AI助手。' },
+      ...messages.slice(-10), // 只保留最近的10条消息作为上下文
+      newMessage
+    ];
+
     try {
       const response = await fetch(model.apiUrl, {
         method: 'POST',
@@ -106,15 +137,9 @@ const Chat = () => {
           'Authorization': `Bearer ${model.apiKey}`,
         },
         body: JSON.stringify({
-          model: model.name, // 添加model字段
-          messages: [
-            // 系统提示
-            { role: 'system', content: '你是一个有帮助的AI助手。' },
-            // 历史消息，用于保持上下文
-            ...messages,
-            // 新消息
-            newMessage
-          ],
+          model: model.name,
+          messages: messagesToSend,
+          stream: false, // 禁用流式响应以提高稳定性
         }),
       });
 
@@ -144,7 +169,11 @@ const Chat = () => {
   };
 
   const handleHistoryClick = (history: ChatHistory) => {
-    setMessages(history.messages);
+    if (selectedHistory === history.id) {
+      setSelectedHistory(null);
+    } else if (!selectedHistory) {
+      setMessages(history.messages);
+    }
   };
 
   React.useEffect(() => {
@@ -180,11 +209,31 @@ const Chat = () => {
                   {chatHistory.map((chat) => (
                     <div
                       key={chat.id}
-                      className="p-3 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                      className={`p-3 rounded-lg cursor-pointer transition-colors relative
+                        ${selectedHistory === chat.id ? 'bg-blue-100' : 'hover:bg-gray-100'}
+                      `}
                       onClick={() => handleHistoryClick(chat)}
+                      onMouseDown={() => handleLongPressStart(chat.id)}
+                      onMouseUp={handleLongPressEnd}
+                      onMouseLeave={handleLongPressEnd}
+                      onTouchStart={() => handleLongPressStart(chat.id)}
+                      onTouchEnd={handleLongPressEnd}
                     >
                       <div className="font-medium text-sm">{chat.title}</div>
                       <div className="text-xs text-gray-500">{chat.date}</div>
+                      {selectedHistory === chat.id && (
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="absolute right-2 top-1/2 -translate-y-1/2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteHistory(chat.id);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   ))}
                 </div>
