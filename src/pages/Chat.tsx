@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Select,
   SelectContent,
@@ -11,7 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { User, Bot, History, PanelLeftClose, PanelLeftOpen, Plus } from 'lucide-react';
+import { User, Bot, PanelLeftClose, PanelLeftOpen, Plus } from 'lucide-react';
+import useModels from '../hooks/useModels';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -25,24 +27,15 @@ interface ChatHistory {
   messages: Message[];
 }
 
-interface Model {
-  id: string;
-  name: string;
-  apiUrl: string;
-}
-
 const Chat = () => {
+  const { toast } = useToast();
+  const { models, getModel } = useModels();
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [input, setInput] = React.useState("");
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
   const [selectedModel, setSelectedModel] = React.useState<string>("");
+  const [isLoading, setIsLoading] = React.useState(false);
   const scrollRef = React.useRef<HTMLDivElement>(null);
-
-  // 模拟模型数据
-  const [models] = React.useState<Model[]>([
-    { id: '1', name: 'GPT-4', apiUrl: 'https://api.example.com/v1/gpt4' },
-    { id: '2', name: 'Claude', apiUrl: 'https://api.example.com/v1/claude' },
-  ]);
 
   // 模拟历史记录数据
   const [chatHistory] = React.useState<ChatHistory[]>([
@@ -79,25 +72,73 @@ const Chat = () => {
     setMessages([]);
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
     if (!selectedModel) {
-      alert("请先选择一个AI模型");
+      toast({
+        title: "请选择模型",
+        description: "发送消息前请先选择一个AI模型",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const model = getModel(selectedModel);
+    if (!model) {
+      toast({
+        title: "模型配置错误",
+        description: "未找到选中的模型配置信息",
+        variant: "destructive",
+      });
       return;
     }
     
     const newMessage: Message = { role: 'user', content: input };
     setMessages(prev => [...prev, newMessage]);
     setInput("");
+    setIsLoading(true);
 
-    // 模拟AI响应
-    setTimeout(() => {
-      const response: Message = {
-        role: 'assistant',
-        content: "这是一个模拟的响应。连接到您的AI模型以获取真实响应。"
-      };
-      setMessages(prev => [...prev, response]);
-    }, 1000);
+    try {
+      const response = await fetch(model.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${model.apiKey}`,
+        },
+        body: JSON.stringify({
+          messages: [
+            // 系统提示
+            { role: 'system', content: '你是一个有帮助的AI助手。' },
+            // 历史消息，用于保持上下文
+            ...messages,
+            // 新消息
+            newMessage
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('API请求失败');
+      }
+
+      const data = await response.json();
+      const aiResponse = data.choices?.[0]?.message?.content;
+      
+      if (aiResponse) {
+        setMessages(prev => [...prev, { role: 'assistant', content: aiResponse }]);
+      } else {
+        throw new Error('无效的API响应');
+      }
+    } catch (error) {
+      console.error('错误:', error);
+      toast({
+        title: "发送失败",
+        description: "无法从AI模型获取响应",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleHistoryClick = (history: ChatHistory) => {
@@ -221,8 +262,14 @@ const Chat = () => {
                 placeholder="输入您的消息..."
                 onKeyPress={(e) => e.key === 'Enter' && handleSend()}
                 className="flex-1"
+                disabled={isLoading}
               />
-              <Button onClick={handleSend}>发送</Button>
+              <Button 
+                onClick={handleSend} 
+                disabled={isLoading}
+              >
+                {isLoading ? "发送中..." : "发送"}
+              </Button>
             </div>
           </CardContent>
         </Card>
