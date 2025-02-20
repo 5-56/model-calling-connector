@@ -3,7 +3,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import DeleteDialog from './DeleteDialog';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -38,6 +39,27 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onLongPressStart,
   onLongPressEnd,
 }) => {
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(null);
+
+  const handleLongPress = (id: string) => {
+    setDeleteTargetId(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteTargetId) {
+      onDeleteHistory(deleteTargetId);
+      setDeleteDialogOpen(false);
+      setDeleteTargetId(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setDeleteTargetId(null);
+  };
+
   return (
     <div 
       className={`${
@@ -71,28 +93,24 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                   onMouseLeave={onLongPressEnd}
                   onTouchStart={() => onLongPressStart(chat.id)}
                   onTouchEnd={onLongPressEnd}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    handleLongPress(chat.id);
+                  }}
                 >
                   <div className="font-medium text-sm">{chat.title}</div>
                   <div className="text-xs text-gray-500">{chat.date}</div>
-                  {selectedHistory === chat.id && (
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      className="absolute right-2 top-1/2 -translate-y-1/2"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteHistory(chat.id);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
                 </div>
               ))}
             </div>
           </ScrollArea>
         </CardContent>
       </Card>
+      <DeleteDialog
+        isOpen={deleteDialogOpen}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
     </div>
   );
 };
