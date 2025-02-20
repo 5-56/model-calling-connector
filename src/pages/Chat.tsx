@@ -1,9 +1,6 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Select,
@@ -12,19 +9,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { User, Bot, PanelLeftClose, PanelLeftOpen, Plus, Trash2 } from 'lucide-react';
+import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import useModels from '../hooks/useModels';
+import ChatSidebar, { ChatHistory } from '../components/chat/ChatSidebar';
+import MessageList from '../components/chat/MessageList';
+import ChatInput from '../components/chat/ChatInput';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
-}
-
-interface ChatHistory {
-  id: string;
-  title: string;
-  date: string;
-  messages: Message[];
 }
 
 const Chat = () => {
@@ -76,7 +69,7 @@ const Chat = () => {
   const handleLongPressStart = (id: string) => {
     const timeout = setTimeout(() => {
       setSelectedHistory(id);
-    }, 500); // 500ms长按触发
+    }, 500);
     setLongPressTimeout(timeout);
   };
 
@@ -122,10 +115,9 @@ const Chat = () => {
     setInput("");
     setIsLoading(true);
 
-    // 准备发送的消息，确保不超过上下文长度限制
     const messagesToSend = [
       { role: 'system', content: '你是一个有帮助的AI助手。' },
-      ...messages.slice(-10), // 只保留最近的10条消息作为上下文
+      ...messages.slice(-10),
       newMessage
     ];
 
@@ -139,7 +131,7 @@ const Chat = () => {
         body: JSON.stringify({
           model: model.name,
           messages: messagesToSend,
-          stream: false, // 禁用流式响应以提高稳定性
+          stream: false,
         }),
       });
 
@@ -185,64 +177,17 @@ const Chat = () => {
   return (
     <div className="container mx-auto py-6 px-4">
       <div className="flex gap-6">
-        {/* 侧边栏 */}
-        <div 
-          className={`${
-            isSidebarOpen ? 'w-80' : 'w-0 overflow-hidden'
-          } transition-all duration-300 ease-in-out`}
-        >
-          <Card className="h-[calc(100vh-8rem)]">
-            <CardHeader className="flex flex-row items-center justify-between py-4">
-              <CardTitle className="text-xl font-light">对话历史</CardTitle>
-              <Button 
-                onClick={handleNewChat}
-                variant="ghost" 
-                size="icon"
-                className="hover:bg-blue-50 hover:text-blue-600"
-              >
-                <Plus className="h-5 w-5" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[calc(100vh-12rem)]">
-                <div className="space-y-2">
-                  {chatHistory.map((chat) => (
-                    <div
-                      key={chat.id}
-                      className={`p-3 rounded-lg cursor-pointer transition-colors relative
-                        ${selectedHistory === chat.id ? 'bg-blue-100' : 'hover:bg-gray-100'}
-                      `}
-                      onClick={() => handleHistoryClick(chat)}
-                      onMouseDown={() => handleLongPressStart(chat.id)}
-                      onMouseUp={handleLongPressEnd}
-                      onMouseLeave={handleLongPressEnd}
-                      onTouchStart={() => handleLongPressStart(chat.id)}
-                      onTouchEnd={handleLongPressEnd}
-                    >
-                      <div className="font-medium text-sm">{chat.title}</div>
-                      <div className="text-xs text-gray-500">{chat.date}</div>
-                      {selectedHistory === chat.id && (
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          className="absolute right-2 top-1/2 -translate-y-1/2"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteHistory(chat.id);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </div>
+        <ChatSidebar
+          isOpen={isSidebarOpen}
+          chatHistory={chatHistory}
+          selectedHistory={selectedHistory}
+          onNewChat={handleNewChat}
+          onHistoryClick={handleHistoryClick}
+          onDeleteHistory={handleDeleteHistory}
+          onLongPressStart={handleLongPressStart}
+          onLongPressEnd={handleLongPressEnd}
+        />
 
-        {/* 主聊天区域 */}
         <Card className="flex-1 h-[calc(100vh-8rem)] flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between py-4">
             <Button
@@ -274,54 +219,13 @@ const Chat = () => {
             <div className="w-9" />
           </CardHeader>
           <CardContent className="flex-1 flex flex-col">
-            <ScrollArea ref={scrollRef} className="flex-1 pr-4">
-              <div className="space-y-4">
-                {messages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`flex items-start gap-3 ${
-                      message.role === 'user' ? 'justify-end' : 'justify-start'
-                    }`}
-                  >
-                    {message.role === 'assistant' && (
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                        <Bot className="w-5 h-5 text-blue-600" />
-                      </div>
-                    )}
-                    <div
-                      className={`max-w-[70%] rounded-lg p-3 ${
-                        message.role === 'user'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-900'
-                      }`}
-                    >
-                      {message.content}
-                    </div>
-                    {message.role === 'user' && (
-                      <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
-                        <User className="w-5 h-5 text-white" />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-            <div className="flex gap-2 mt-4">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="输入您的消息..."
-                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                className="flex-1"
-                disabled={isLoading}
-              />
-              <Button 
-                onClick={handleSend} 
-                disabled={isLoading}
-              >
-                {isLoading ? "发送中..." : "发送"}
-              </Button>
-            </div>
+            <MessageList messages={messages} scrollRef={scrollRef} />
+            <ChatInput
+              input={input}
+              isLoading={isLoading}
+              onChange={setInput}
+              onSend={handleSend}
+            />
           </CardContent>
         </Card>
       </div>
