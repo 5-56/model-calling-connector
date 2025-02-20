@@ -21,6 +21,15 @@ interface Message {
   content: string;
 }
 
+interface ChatState {
+  messages: Message[];
+  selectedModel: string;
+  isSidebarOpen: boolean;
+  chatHistory: ChatHistory[];
+}
+
+const STORAGE_KEY = 'chat_state';
+
 const Chat = () => {
   const { toast } = useToast();
   const { models, getModel } = useModels();
@@ -33,38 +42,52 @@ const Chat = () => {
   const [longPressTimeout, setLongPressTimeout] = React.useState<NodeJS.Timeout | null>(null);
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
-  const [chatHistory, setChatHistory] = React.useState<ChatHistory[]>([
-    {
-      id: '1',
-      title: '关于人工智能的讨论',
-      date: '2024-02-20',
-      messages: [
-        { role: 'user', content: '什么是人工智能？' },
-        { role: 'assistant', content: '人工智能是计算机科学的一个分支，致力于创造能够模拟人类智能的系统。' },
-      ]
-    },
-    {
-      id: '2',
-      title: '机器学习基础概念',
-      date: '2024-02-19',
-      messages: [
-        { role: 'user', content: '请解释什么是机器学习？' },
-        { role: 'assistant', content: '机器学习是人工智能的一个子领域，它使计算机系统能够通过经验自动改进。' },
-      ]
-    },
-    {
-      id: '3',
-      title: '深度学习应用案例',
-      date: '2024-02-18',
-      messages: [
-        { role: 'user', content: '深度学习有哪些实际应用？' },
-        { role: 'assistant', content: '深度学习在图像识别、自然语言处理、语音识别等领域都有广泛应用。' },
-      ]
-    },
-  ]);
+  const [chatHistory, setChatHistory] = React.useState<ChatHistory[]>([]);
+
+  // 从 localStorage 加载状态
+  React.useEffect(() => {
+    const savedState = localStorage.getItem(STORAGE_KEY);
+    if (savedState) {
+      try {
+        const parsedState: ChatState = JSON.parse(savedState);
+        setMessages(parsedState.messages || []);
+        setSelectedModel(parsedState.selectedModel || "");
+        setIsSidebarOpen(parsedState.isSidebarOpen ?? true);
+        setChatHistory(parsedState.chatHistory || []);
+      } catch (error) {
+        console.error('Error loading saved state:', error);
+      }
+    }
+  }, []);
+
+  // 保存状态到 localStorage
+  const saveState = React.useCallback(() => {
+    const state: ChatState = {
+      messages,
+      selectedModel,
+      isSidebarOpen,
+      chatHistory,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }, [messages, selectedModel, isSidebarOpen, chatHistory]);
+
+  // 当状态改变时保存
+  React.useEffect(() => {
+    saveState();
+  }, [messages, selectedModel, isSidebarOpen, chatHistory, saveState]);
 
   const handleNewChat = () => {
     setMessages([]);
+    // 保存当前对话到历史记录
+    if (messages.length > 0) {
+      const newHistory: ChatHistory = {
+        id: Date.now().toString(),
+        title: messages[0].content.slice(0, 30) + '...',
+        date: new Date().toISOString().split('T')[0],
+        messages: [...messages],
+      };
+      setChatHistory(prev => [newHistory, ...prev]);
+    }
   };
 
   const handleLongPressStart = (id: string) => {
