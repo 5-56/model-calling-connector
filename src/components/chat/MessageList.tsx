@@ -6,7 +6,6 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
-import type { CodeProps } from 'react-markdown/lib/ast-to-react';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -17,6 +16,12 @@ interface Message {
 interface MessageListProps {
   messages: Message[];
   scrollRef: React.RefObject<HTMLDivElement>;
+}
+
+interface CodeBlockProps {
+  inline?: boolean;
+  className?: string;
+  children: React.ReactNode;
 }
 
 const MessageList: React.FC<MessageListProps> = ({ messages, scrollRef }) => {
@@ -46,9 +51,9 @@ const MessageList: React.FC<MessageListProps> = ({ messages, scrollRef }) => {
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
-                    code({ node, className, children, ...props }: CodeProps) {
+                    code({ inline, className, children, ...props }: CodeBlockProps) {
                       const match = /language-(\w+)/.exec(className || '');
-                      return !props.inline && match ? (
+                      return !inline && match ? (
                         <SyntaxHighlighter
                           style={vscDarkPlus}
                           language={match[1]}
