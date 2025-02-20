@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
+import type { CodeProps } from 'react-markdown/lib/ast-to-react';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -45,9 +46,9 @@ const MessageList: React.FC<MessageListProps> = ({ messages, scrollRef }) => {
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
-                    code({node, inline, className, children, ...props}) {
+                    code({ node, className, children, ...props }: CodeProps) {
                       const match = /language-(\w+)/.exec(className || '');
-                      return !inline && match ? (
+                      return !props.inline && match ? (
                         <SyntaxHighlighter
                           style={vscDarkPlus}
                           language={match[1]}
@@ -62,15 +63,17 @@ const MessageList: React.FC<MessageListProps> = ({ messages, scrollRef }) => {
                         </code>
                       );
                     },
-                    // 自定义表格样式
-                    table: ({node, ...props}) => (
+                    table: ({ children }) => (
                       <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200" {...props} />
+                        <table className="min-w-full divide-y divide-gray-200">
+                          {children}
+                        </table>
                       </div>
                     ),
-                    // 自定义链接样式
-                    a: ({node, ...props}) => (
-                      <a className="text-blue-500 hover:underline" {...props} />
+                    a: ({ children, ...props }) => (
+                      <a className="text-blue-500 hover:underline" {...props}>
+                        {children}
+                      </a>
                     ),
                   }}
                 >
